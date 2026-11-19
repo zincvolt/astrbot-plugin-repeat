@@ -1,0 +1,9 @@
+{
+  "enabled": true,
+  "threshold": 3,
+  "window": 120,
+  "cooldown": 300,
+  "min_senders": 2,
+  "max_len": 60,
+  "disabled_groups": []
+}
