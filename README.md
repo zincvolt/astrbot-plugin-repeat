@@ -64,8 +64,9 @@ git clone https://github.com/zincvolt/astrbot-plugin-repeat.git astrbot_plugin_r
 ## 实现要点
 
 - 状态只在内存里（`umo -> {text, count, senders, ts}`），重启清零，不写文件
-- handler 注册在 `priority=maxsize`，早于 AstrBot 内置的群聊上下文 / 主动回复
-  （`maxsize-1`、`maxsize-2`）执行；不命中就立刻返回，不影响正常聊天
+- handler 注册在 `priority=maxsize - 1`，早于 AstrBot 内置的群聊上下文 / 主动回复
+  （`maxsize-1`、`maxsize-2`）执行；不命中就立刻返回，不影响正常聊天；
+  留出一档给别的命令类插件（如兽聚），避免同一条消息既出卡又被复读
 - 计数与清零都在 `await event.send(...)` 之前完成，两个事件抢同一条消息时也只会发一次
 
 ## 许可

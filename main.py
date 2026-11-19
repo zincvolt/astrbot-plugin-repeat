@@ -19,9 +19,10 @@
 只统计纯文本：斜杠命令、引用回复、图片、语音、以及任何带非文本组件的消息一律
 不参与，避免复读出 `[图片]` 或者把 `/下次展` 复读出来跟别的插件打架。
 
-handler 注册在 `priority=maxsize`，比 AstrBot 内置的群聊上下文 / 主动回复
-（`maxsize-1`、`maxsize-2`）更早执行；复读发出后 `stop_event()`，否则判官会在
-同一条消息上再补一句，变成「复读 + 聊天」两条回复。
+handler 注册在 `priority=maxsize - 1`：比 AstrBot 内置的群聊上下文 / 主动回复
+（`maxsize-1`、`maxsize-2`）更早执行，复读发出后 `stop_event()`，否则判官会在
+同一条消息上再补一句，变成「复读 + 聊天」两条回复。留出的那一档给 furcon
+（`maxsize`）先判展会指令，避免「阿灰下次兽聚」既出卡又被复读。
 """
 
 from __future__ import annotations
@@ -103,7 +104,10 @@ class Main(star.Star):
             parts.append(comp.text or "")
         return "".join(parts).strip()
 
-    @filter.event_message_type(filter.EventMessageType.GROUP_MESSAGE, priority=maxsize)
+    @filter.event_message_type(
+        filter.EventMessageType.GROUP_MESSAGE,
+        priority=maxsize - 1,
+    )
     async def echo(self, event: AstrMessageEvent) -> None:
         """统计连续相同的消息，达标就复读一次。"""
         cfg = self._config()
