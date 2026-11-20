@@ -1,4 +1,4 @@
 name: astrbot_plugin_repeat
-desc: 群聊复读机：三条以上相同消息自动复读一次（带冷却，不会复读个没完）
+desc: 群聊复读机：三条以上相同消息自动复读一次（带冷却，不会复读个没完）。整套 QQ 机器人方案主仓库：github.com/zincvolt/QQNTbotBUTafter261101
 author: local
 version: 1.0.0

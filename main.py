@@ -4,12 +4,16 @@
 来自 `min_senders` 个不同的人。凑够 `threshold` 条就复读一次，然后立刻把计数
 清零，并对这段文本记一个 `cooldown`，避免同一句话被反复复读。
 
+`window` 是「相邻两条之间」的间隔，不是从第一条起算。默认 240 秒：真实群聊里
+复读经常是「两条快的 + 一条隔了两三分钟才跟上」，120 秒会把它判成两段。
+（曾实测 32 秒 + 143 秒的三连，用 120 秒窗口时第三条被清零，一句都没复读。）
+
 配置在同目录的 `repeat.json`（可选，缺省即下面的默认值）：
 
     {
       "enabled": true,
       "threshold": 3,
-      "window": 120,
+      "window": 240,
       "cooldown": 300,
       "min_senders": 2,
       "max_len": 60,
@@ -36,12 +40,16 @@ from astrbot.api import logger, star
 from astrbot.api.event import AstrMessageEvent, filter
 from astrbot.api.message_components import Plain
 
+# 指令自声明（插件开发规范要求，见 docs/PLUGIN-DEV.md）：本插件无斜线指令
+DECLARED_COMMANDS: dict[str, tuple[str, str]] = {}
+DECLARED_BEHAVIOR = "无斜线指令：群友复读跟风（达到阈值自动跟一句，冷却+人数门槛控制）"
+
 CONFIG_PATH = Path(__file__).resolve().parent / "repeat.json"
 
 DEFAULTS: dict = {
     "enabled": True,
     "threshold": 3,
-    "window": 120,
+    "window": 240,
     "cooldown": 300,
     "min_senders": 2,
     "max_len": 60,
@@ -137,13 +145,27 @@ class Main(star.Star):
             st["count"] += 1
             st["senders"].add(sender)
         else:
+            # 同一句话但间隔超窗口：这不是 bug 就是真的聊别的去了，
+            # 记一行日志，下次再有人问「怎么没复读」直接能对上
+            if st and st["text"] == text:
+                logger.info(
+                    f"[repeat] chain broken: gap {now - st['ts']:.0f}s > "
+                    f"{cfg['window']}s, count was {st['count']}"
+                )
             st = {"text": text, "count": 1, "senders": {sender}, "ts": now}
         st["ts"] = now
         self._state[umo] = st
 
         if st["count"] < int(cfg["threshold"]):
+            # 只差一条时留个念想，方便判断是没触发还是没攒够
+            if st["count"] > 1:
+                logger.info(f"[repeat] {st['count']}/{cfg['threshold']} {text[:16]}")
             return
         if len(st["senders"]) < int(cfg["min_senders"]):
+            logger.info(
+                f"[repeat] {st['count']}x from {len(st['senders'])} sender(s), "
+                f"need {cfg['min_senders']} — 一个人刷屏不算复读"
+            )
             return
 
         last = self._echoed.get(umo)
