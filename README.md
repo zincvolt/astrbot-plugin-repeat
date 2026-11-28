@@ -31,7 +31,7 @@ git clone https://github.com/zincvolt/astrbot-plugin-repeat.git astrbot_plugin_r
 {
   "enabled": true,
   "threshold": 3,
-  "window": 120,
+  "window": 240,
   "cooldown": 300,
   "min_senders": 2,
   "max_len": 60,
@@ -43,7 +43,7 @@ git clone https://github.com/zincvolt/astrbot-plugin-repeat.git astrbot_plugin_r
 |---|---|---|
 | `enabled` | 总开关 | `true` |
 | `threshold` | 连续几条相同才复读 | `3` |
-| `window` | 两条之间最多隔多久仍算「连续」（秒） | `120` |
+| `window` | 两条之间最多隔多久仍算「连续」（秒） | `240` |
 | `cooldown` | 同一段文本两次复读的最小间隔（秒） | `300` |
 | `min_senders` | 至少几个不同的人参与 | `2` |
 | `max_len` | 超过这个长度的消息不参与（字符） | `60` |
